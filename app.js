@@ -1,0 +1,75 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const mysql = require('mysql');
+const port = 3000;
+
+const pool = mysql.createPool({
+    host: "127.0.0.1",
+    port: 3306,
+    user: "root",
+    password: "abcd@1234",
+    database: "localdb"
+});
+
+const app = express();
+app.use(bodyParser.json());
+
+app.get("/api/users", (req, res) => {
+    pool.getConnection((err, conn) => {
+        if (err) throw err;
+        conn.query("SELECT * from users", (error, results, fields) => {
+            conn.release();
+            if (error) throw error;
+            res.send(results);
+        });
+    });
+});
+
+app.post("/api/users", (req, res) => {
+    let body = req.body;
+    let user = {
+        "name": body["name"],
+        "email": body["email"]
+    };
+    pool.getConnection((err, conn) => {
+        if (err) throw err;
+        conn.query("INSERT INTO users SET ?", user, (error, results, fields) => {
+            conn.release();
+            if (error) throw error;
+            res.send(results);
+        });
+    });
+});
+
+app.patch("/api/users/:user_id", (req, res) => {
+    let body = req.body;
+    let userid = req.params["user_id"];
+    let name = body["name"];
+    let email = body["email"];
+    let query = `UPDATE users SET name='${name}',email='${email}' WHERE id=${userid}`;
+    pool.getConnection((err, conn) => {
+        if (err) throw err;
+        conn.query(query, (error, results, fields) => {
+            conn.release();
+            if (error) throw error;
+            res.send(results);
+        });
+    });
+});
+
+app.delete("/api/users/:user_id", (req, res) => {
+    let userid = req.params["user_id"];
+    let query = `DELETE FROM users WHERE id=${userid}`;
+    pool.getConnection((err, conn) => {
+        if (err) throw err;
+        conn.query(query, (error, results, fields) => {
+            conn.release();
+            if (error) throw error;
+            res.send(results);
+        });
+    })
+});
+
+app.listen(port, () => {
+    console.log("server started to listen on " + port);
+});

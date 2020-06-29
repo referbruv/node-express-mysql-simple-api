@@ -3,13 +3,14 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const port = 3000;
 
-const pool = mysql.createPool({
-    host: "127.0.0.1",
-    port: 3306,
-    user: "root",
-    password: "abcd@1234",
-    database: "localdb"
-});
+const config = {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DATABASE,
+};
+const pool = mysql.createPool(config);
 
 const app = express();
 app.use(bodyParser.json());
@@ -70,6 +71,6 @@ app.delete("/api/users/:user_id", (req, res) => {
     })
 });
 
-app.listen(port, () => {
-    console.log("server started to listen on " + port);
-});
+// app.listen(port, () => {
+//     console.log("server started to listen on " + port);
+// });
